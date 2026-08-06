@@ -195,8 +195,13 @@ button, input, select { font-family: inherit; }
 .btn-primary { background: var(--accent); color: #06111f; }
 .btn-primary:hover { filter: brightness(1.1); }
 .btn-primary:disabled { opacity: 0.5; cursor: progress; }
+
 .btn-ghost { background: transparent; border-color: var(--line-strong); color: var(--text-primary); }
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-danger { background: transparent; border-color: rgba(255,138,138,0.4); color: var(--red); margin-right: auto; }
+.btn-danger:hover { background: var(--red-soft); }
+.btn-danger:disabled { opacity: 0.5; cursor: progress; }
 
 .empty-state { padding: 40px 20px; text-align: center; color: var(--text-faint); border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 
@@ -210,6 +215,27 @@ button, input, select { font-family: inherit; }
   border-radius: 8px; padding: 10px 12px; font-size: 13.5px;
 }
 .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+
+/* ---------- PROFILE-INCOMPLETE MODAL ---------- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(3, 6, 14, 0.72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 200; backdrop-filter: blur(2px);
+}
+.modal-card {
+  width: 100%; max-width: 420px;
+  background: linear-gradient(180deg, var(--bg-panel-alt), var(--bg-panel));
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  padding: 28px 26px 24px;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.65);
+}
+.modal-card h3 {
+  font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700;
+  margin: 4px 0 12px;
+}
+.modal-body { font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin: 0 0 22px; }
+.modal-body strong { color: var(--text-primary); }
+.modal-actions { display: flex; justify-content: flex-end; }
 
 /* ---------- TOAST ---------- */
 .toast {

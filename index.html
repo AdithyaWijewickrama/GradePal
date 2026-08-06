@@ -167,6 +167,7 @@
             </div>
             <div class="panel-footer" style="padding:0; margin-top:8px;">
               <span class="save-status" id="profile-save-status"></span>
+              <button type="button" class="btn btn-danger" id="delete-profile-btn">Delete profile</button>
               <button type="submit" class="btn btn-primary">Save profile</button>
             </div>
           </form>
@@ -178,6 +179,20 @@
 
   <!-- toast -->
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <!-- profile-incomplete modal -->
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+      <p class="panel-eyebrow">ONE MORE STEP</p>
+      <h3 id="profile-modal-title">Finish setting up your profile</h3>
+      <p class="modal-body">We still need your <strong>name</strong>, <strong>student number</strong>, and
+        <strong>batch</strong> before you can start tracking grades. Department is optional for now — you can add it
+        later to unlock Semesters 3–8.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" id="profile-modal-btn">Update details</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script type="module" src="js/main.js"></script>

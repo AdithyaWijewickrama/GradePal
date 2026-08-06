@@ -20,6 +20,7 @@ const cgpaValue = el('cgpa-value');
 const userEmailEl = el('user-email');
 const adminLink = el('admin-link');
 const toast = el('toast');
+const profileModal = el('profile-modal');
 
 function showToast(msg, isError = false) {
   toast.textContent = msg;
@@ -28,6 +29,7 @@ function showToast(msg, isError = false) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => toast.classList.add('hidden'), 3200);
 }
+
 
 // ---------------------------------------------------------------------------
 // BOOT
@@ -50,7 +52,19 @@ function showToast(msg, isError = false) {
 
   loadingState.classList.add('hidden');
   activateTab(activeTab);
+  maybeShowProfileModal();
 })();
+
+el('profile-modal-btn').addEventListener('click', () => {
+  profileModal.classList.add('hidden');
+  activateTab('profile');
+  el('p-name').focus();
+});
+
+function maybeShowProfileModal() {
+  const incomplete = !profile?.full_name?.trim() || !profile?.student_number?.trim() || !profile?.batch;
+  profileModal.classList.toggle('hidden', !incomplete);
+}
 
 el('signout-btn').addEventListener('click', async () => {
   await supabase.auth.signOut();
@@ -462,3 +476,21 @@ el('profile-form').addEventListener('submit', async (e) => {
 function applyDeptLock() {
   noDeptBanner.classList.toggle('hidden', !!profile?.department);
 }
+
+el('delete-profile-btn').addEventListener('click', async () => {
+  const sure = confirm('Delete your profile? This permanently removes your name, student number, batch, department, and every saved grade. This cannot be undone.');
+  if (!sure) return;
+
+  const btn = el('delete-profile-btn');
+  btn.disabled = true;
+
+  const { error } = await supabase.from('profiles').delete().eq('id', session.user.id);
+  if (error) {
+    btn.disabled = false;
+    showToast('Could not delete profile: ' + error.message, true);
+    return;
+  }
+
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
