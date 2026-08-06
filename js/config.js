@@ -5,8 +5,8 @@
 // and add this app's URL to Authentication > URL Configuration > Redirect URLs.
 // ============================================================================
 
-export const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
-export const SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-PUBLIC-KEY";
+export const SUPABASE_URL = "https://tzrgdzgjeottugzwdatr.supabase.co";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6cmdkemdqZW90dHVnendkYXRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwMDA1MzEsImV4cCI6MjEwMTU3NjUzMX0.uo0eZT5L9sLVuWZURhbyz3acq2UAjAEI9_7olEFxeok";
 
 // Loaded from CDN in each HTML file via:
 // <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

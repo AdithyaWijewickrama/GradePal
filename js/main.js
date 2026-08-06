@@ -231,7 +231,9 @@ function renderSemesterPanel(sem, semNumber) {
     });
   }
 
-  node.querySelector('[data-save-btn]').addEventListener('click', () => saveSemester(sem.id, node.querySelector('[data-save-status]'), node.querySelector('[data-save-btn]')));
+  const saveStatusEl = node.querySelector('[data-save-status]');
+  const saveBtnEl = node.querySelector('[data-save-btn]');
+  saveBtnEl.addEventListener('click', () => saveSemester(sem.id, saveStatusEl, saveBtnEl));
 
   content.appendChild(node);
   refreshSemesterStats(sem.id, semNumber, mods);

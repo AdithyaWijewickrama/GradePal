@@ -1,4 +1,4 @@
-# UOR FOE — GPA Ledger
+# UOR FOE — Grade Pal
 
 A responsive, dark-blue themed GPA tracker for the Faculty of Engineering, University of Ruhuna.
 Covers all 8 semesters — Semesters 1 & 2 are common to everyone, Semesters 3–8 are split by
