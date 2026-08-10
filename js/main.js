@@ -213,8 +213,11 @@ function renderAllPanels() {
   if (profilePanel) profilePanel.id = 'panel-profile';
 }
 
+let currentRenderSem = null;
+
 function renderSemesterPanel(sem, semNumber) {
   const mods = modulesBySem[sem.id] || [];
+  currentRenderSem = sem;
   const isEmpty = mods.length === 0;
   const tpl = document.getElementById(isEmpty ? 'empty-panel-template' : 'semester-panel-template');
   const node = tpl.content.cloneNode(true);
@@ -247,6 +250,7 @@ function renderSemesterPanel(sem, semNumber) {
 
   const saveStatusEl = node.querySelector('[data-save-status]');
   const saveBtnEl = node.querySelector('[data-save-btn]');
+
   saveBtnEl.addEventListener('click', () => saveSemester(sem.id, saveStatusEl, saveBtnEl));
 
   content.appendChild(node);
@@ -275,9 +279,13 @@ function buildModuleRow(semId, mod) {
   select.className = 'grade-select';
   select.dataset.moduleId = mod.id;
 
+  const saveStatusEl = node.querySelector('[data-save-status]');
+  const saveBtnEl = node.querySelector('[data-save-btn]');
+
   const pendingOpt = document.createElement('option');
   pendingOpt.value = '';
   pendingOpt.textContent = 'Pending';
+  pendingOpt.addEventListener('onchange', () => saveSemester(currentRenderSem.id, saveStatusEl, saveBtnEl));
   select.appendChild(pendingOpt);
 
   for (const g of ALL_GRADES) {

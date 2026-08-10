@@ -108,7 +108,7 @@ function barRow(label, value, max, displayValue) {
 }
 
 function renderLeaderboard(studentStats) {
-  const top = studentStats.filter(s => s.gradedCount > 0).sort((a, b) => b.cgpa - a.cgpa).slice(0, 10);
+  const top = studentStats.filter(s => s.gradedCount > 0).sort((a, b) => b.cgpa - a.cgpa).slice(0, 100);
   const tbody = el('top-tbody');
   if (top.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-faint); padding:24px;">No graded students yet.</td></tr>`;
