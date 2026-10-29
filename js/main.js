@@ -216,8 +216,8 @@ function renderAllPanels() {
 let currentRenderSem = null;
 
 function renderSemesterPanel(sem, semNumber) {
-  const mods = modulesBySem[sem.id] || [];
   currentRenderSem = sem;
+  const mods = modulesBySem[sem.id] || [];
   const isEmpty = mods.length === 0;
   const tpl = document.getElementById(isEmpty ? 'empty-panel-template' : 'semester-panel-template');
   const node = tpl.content.cloneNode(true);
@@ -279,6 +279,10 @@ function buildModuleRow(semId, mod) {
   select.className = 'grade-select';
   select.dataset.moduleId = mod.id;
 
+  const mods = modulesBySem[currentRenderSem.id] || [];
+  const isEmpty = mods.length === 0;
+  const tpl = document.getElementById(isEmpty ? 'empty-panel-template' : 'semester-panel-template');
+  const node = tpl.content.cloneNode(true);
   const saveStatusEl = node.querySelector('[data-save-status]');
   const saveBtnEl = node.querySelector('[data-save-btn]');
 
