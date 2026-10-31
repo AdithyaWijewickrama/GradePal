@@ -1,4 +1,4 @@
-import { getClient, calcGPA, fmtGPA, GRADE_POINTS, NON_GPA_GRADES, DEPARTMENTS, BATCHES } from './config.js';
+import { getClient, calcGPA, fmtGPA, escapeHtml, DEPARTMENTS, BATCHES } from './config.js';
 
 const supabase = getClient();
 const el = (id) => document.getElementById(id);
@@ -117,9 +117,9 @@ function renderLeaderboard(studentStats) {
   tbody.innerHTML = top.map((s, i) => `
     <tr>
       <td class="mod-credits">${i + 1}</td>
-      <td>${s.full_name || '<span class="hint">unnamed</span>'}<br><span class="hint" style="font-size:11px;">${s.email}</span></td>
-      <td class="mod-credits">${s.batch || '—'}</td>
-      <td class="mod-credits">${s.department || '—'}</td>
+      <td>${s.full_name ? escapeHtml(s.full_name) : '<span class="hint">unnamed</span>'}<br><span class="hint" style="font-size:11px;">${escapeHtml(s.email)}</span></td>
+      <td class="mod-credits">${escapeHtml(s.batch || '—')}</td>
+      <td class="mod-credits">${escapeHtml(s.department || '—')}</td>
       <td class="mod-credits">${s.gradedCount}</td>
       <td class="mod-credits" style="color:var(--gold); font-weight:600;">${fmtGPA(s.cgpa)}</td>
     </tr>

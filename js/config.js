@@ -61,6 +61,13 @@ export function calcGPA(entries) {
   return creditSum > 0 ? pointSum / creditSum : 0;
 }
 
+// Escape user-controlled text before interpolating it into innerHTML templates
+export function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[c]);
+}
+
 export function fmtGPA(n) {
   return (Math.round(n * 100) / 100).toFixed(2);
 }

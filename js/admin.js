@@ -1,4 +1,4 @@
-import { getClient, calcGPA, fmtGPA } from './config.js';
+import { getClient, calcGPA, fmtGPA, escapeHtml } from './config.js';
 
 const supabase = getClient();
 const el = (id) => document.getElementById(id);
@@ -100,8 +100,8 @@ function renderSemestersTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="mod-credits">${s.semester_number}</td>
-      <td>${s.department || '<span class="hint">common</span>'}</td>
-      <td>${s.batch_label}</td>
+      <td>${s.department ? escapeHtml(s.department) : '<span class="hint">common</span>'}</td>
+      <td>${escapeHtml(s.batch_label)}</td>
       <td class="mod-credits">${count}</td>
     `;
     tbody.appendChild(tr);
@@ -171,11 +171,11 @@ function renderModulesTable() {
     const sem = semesters.find(s => s.id === m.semester_id);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="mod-code">${m.code}</td>
-      <td>${m.name}</td>
-      <td class="mod-credits">${m.credits}</td>
-      <td>${sem ? `Sem ${sem.semester_number} · ${sem.department || 'common'}` : '—'}</td>
-      <td><button class="mini-btn" data-del="${m.id}" type="button">Remove</button></td>
+      <td class="mod-code">${escapeHtml(m.code)}</td>
+      <td>${escapeHtml(m.name)}</td>
+      <td class="mod-credits">${escapeHtml(m.credits)}</td>
+      <td>${sem ? `Sem ${sem.semester_number} · ${escapeHtml(sem.department || 'common')}` : '—'}</td>
+      <td><button class="mini-btn" data-del="${escapeHtml(m.id)}" type="button">Remove</button></td>
     `;
     tbody.appendChild(tr);
   }
@@ -271,10 +271,10 @@ function renderStudentsTable() {
   for (const s of filtered) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${s.full_name || '<span class="hint">unnamed</span>'}<br><span class="hint" style="font-size:11px;">${s.email}</span></td>
-      <td class="mod-code">${s.student_number || '—'}</td>
-      <td class="mod-credits">${s.batch || '—'}</td>
-      <td class="mod-credits">${s.department || '—'}</td>
+      <td>${s.full_name ? escapeHtml(s.full_name) : '<span class="hint">unnamed</span>'}<br><span class="hint" style="font-size:11px;">${escapeHtml(s.email)}</span></td>
+      <td class="mod-code">${escapeHtml(s.student_number || '—')}</td>
+      <td class="mod-credits">${escapeHtml(s.batch || '—')}</td>
+      <td class="mod-credits">${escapeHtml(s.department || '—')}</td>
       <td class="mod-credits">${s.gradedCount}</td>
       <td class="mod-credits" style="color:var(--gold); font-weight:600;">${s.gradedCount ? fmtGPA(s.cgpa) : '—'}</td>
     `;

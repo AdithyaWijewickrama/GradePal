@@ -10,6 +10,7 @@ no password to create or remember.
 | File | Purpose |
 |---|---|
 | `schema.sql.txt` | Run once in the Supabase SQL editor. Creates every table, RLS policy, trigger, and seeds Semester 1 & 2 modules + empty semester shells for 3–8. |
+| `supabase/rls.sql` | Row Level Security policies. Re-run any time to reset every policy to the expected set. |
 | `config.js` | Shared Supabase client + grade-point table. **Edit the two constants at the top before anything else will work.** |
 | `login.html` / `login.css` | Google sign-in screen. |
 | `index.html` / `main.css` / `main.js` | Student dashboard: semester tabs, grade entry, target-GPA planner, profile tab. |
@@ -77,13 +78,15 @@ files as-is and add that host's URL to Supabase's Redirect URLs list from step 2
 - **SGPA / CGPA math** (in `config.js`, reused everywhere):
   `SGPA = Σ(credits × grade_point) / Σ(credits)` over graded, GPA-counting modules in that semester;
   `CGPA` is the same formula run across every module in every unlocked semester.
-  Grade points: A+/A = 4.0, A- = 3.7, B+ = 3.3, B = 3.0, B- = 2.7, C+ = 2.4, C = 2.0, C- = 1.7, E = 0.0.
+  Grade points: A+/A = 4.0, A- = 3.7, B+ = 3.3, B = 3.0, B- = 2.7, C+ = 2.3, C = 2.0, C- = 1.7, E = 0.0.
   `MC` / `AC` / `WH` are selectable but excluded from GPA math, matching the legend in the source sheet.
 - **Target-GPA planner**: shown only above Semester 1 & 2. Given a target, it solves
   `required_avg = (target × total_credits − earned_points) / pending_credits` and reports whether
   it's achievable, and roughly which grade average is needed.
-- **Saving**: grade dropdowns update in-memory immediately (so SGPA/CGPA react live); nothing hits
-  the database until **Save changes** is pressed, which upserts only the changed rows into `grades`.
-- **Row Level Security**: students can only ever read/write their own `profiles`/`grades`/`target_gpa`
-  rows; only the admin can write `semesters`/`modules`/`app_settings`. Everyone signed in can read the
-  semester/module catalogue.
+- **Saving**: changing a grade dropdown updates SGPA/CGPA live and auto-saves that change, upserting
+  only the changed rows into `grades`. **Save changes** retries anything that failed.
+- **Row Level Security** (`supabase/rls.sql`): students can only ever read/write their own
+  `profiles`/`grades`/`target_gpa` rows, and can't change `profiles.is_admin` or `email`; only the
+  admin can write `semesters`/`modules`/`app_settings`. Everyone signed in can read the
+  semester/module catalogue. The anon key in `config.js` is public by design — these policies are
+  what keep the data safe, so re-run `rls.sql` after any schema change.

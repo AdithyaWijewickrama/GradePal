@@ -1,4 +1,4 @@
-import { getClient, GRADE_POINTS, ALL_GRADES, calcGPA, fmtGPA, DEPARTMENTS } from './config.js';
+import { getClient, GRADE_POINTS, NON_GPA_GRADES, ALL_GRADES, calcGPA, fmtGPA } from './config.js';
 
 const supabase = getClient();
 
@@ -213,10 +213,7 @@ function renderAllPanels() {
   if (profilePanel) profilePanel.id = 'panel-profile';
 }
 
-let currentRenderSem = null;
-
 function renderSemesterPanel(sem, semNumber) {
-  currentRenderSem = sem;
   const mods = modulesBySem[sem.id] || [];
   const isEmpty = mods.length === 0;
   const tpl = document.getElementById(isEmpty ? 'empty-panel-template' : 'semester-panel-template');
@@ -250,7 +247,6 @@ function renderSemesterPanel(sem, semNumber) {
 
   const saveStatusEl = node.querySelector('[data-save-status]');
   const saveBtnEl = node.querySelector('[data-save-btn]');
-
   saveBtnEl.addEventListener('click', () => saveSemester(sem.id, saveStatusEl, saveBtnEl));
 
   content.appendChild(node);
@@ -279,17 +275,9 @@ function buildModuleRow(semId, mod) {
   select.className = 'grade-select';
   select.dataset.moduleId = mod.id;
 
-  const mods = modulesBySem[currentRenderSem.id] || [];
-  const isEmpty = mods.length === 0;
-  const tpl = document.getElementById(isEmpty ? 'empty-panel-template' : 'semester-panel-template');
-  const node = tpl.content.cloneNode(true);
-  const saveStatusEl = node.querySelector('[data-save-status]');
-  const saveBtnEl = node.querySelector('[data-save-btn]');
-
   const pendingOpt = document.createElement('option');
   pendingOpt.value = '';
   pendingOpt.textContent = 'Pending';
-  pendingOpt.addEventListener('onchange', () => saveSemester(currentRenderSem.id, saveStatusEl, saveBtnEl));
   select.appendChild(pendingOpt);
 
   for (const g of ALL_GRADES) {
@@ -312,6 +300,12 @@ function buildModuleRow(semId, mod) {
     const semNumber = semesters.find(s => s.id === semId)?.semester_number;
     refreshSemesterStats(semId, semNumber, modulesBySem[semId]);
     updateCgpa();
+
+    // auto-save using the live panel's footer controls
+    const panel = select.closest('[data-panel]');
+    const statusEl = panel?.querySelector('[data-save-status]');
+    const btnEl = panel?.querySelector('[data-save-btn]');
+    if (statusEl && btnEl) saveSemester(semId, statusEl, btnEl);
   });
 
   tdGrade.appendChild(select);
@@ -363,7 +357,8 @@ function runTargetCalc(semId, mods, targetRaw, resultEl) {
     return;
   }
 
-  const gpaCredits = mods.filter(m => Number(m.credits) > 0);
+  // MC/AC/WH modules don't count toward GPA, so they're neither graded nor pending here
+  const gpaCredits = mods.filter(m => Number(m.credits) > 0 && !NON_GPA_GRADES.includes(gradesByModule[m.id]));
   const totalCredits = gpaCredits.reduce((s, m) => s + Number(m.credits), 0);
   const graded = gpaCredits.filter(m => gradesByModule[m.id] && GRADE_POINTS[gradesByModule[m.id]] !== undefined);
   const pending = gpaCredits.filter(m => !gradesByModule[m.id] || GRADE_POINTS[gradesByModule[m.id]] === undefined);
@@ -386,7 +381,7 @@ function runTargetCalc(semId, mods, targetRaw, resultEl) {
     return;
   }
   if (requiredAvg <= 0) {
-    resultEl.innerHTML = `You've already secured this target — your GPA can't drop below <span class="hl">${fmtGPA(earnedPoints / totalCredits)}</span> once all modules are pending-cleared at E or better.`;
+    resultEl.innerHTML = `You've already secured this target — even with E grades on every pending module, your GPA would be <span class="hl">${fmtGPA(earnedPoints / totalCredits)}</span>.`;
     return;
   }
 
@@ -409,9 +404,9 @@ function nearestGradeLabel(gp) {
 async function saveSemester(semId, statusEl, btn) {
   const changed = dirtyBySem[semId];
   const mods = modulesBySem[semId] || [];
-  const rows = mods
-    .filter(m => !changed || changed.has(m.id)) // if nothing tracked yet, save all (first save)
-    .map(m => ({ user_id: session.user.id, module_id: m.id, grade: gradesByModule[m.id] || null }));
+  const toSave = mods.filter(m => !changed || changed.has(m.id)); // if nothing tracked yet, save all (first save)
+  const rows = toSave.map(m => ({ user_id: session.user.id, module_id: m.id, grade: gradesByModule[m.id] || null }));
+  const savedValues = new Map(rows.map(r => [r.module_id, r.grade]));
 
   if (rows.length === 0) { statusEl.textContent = 'Nothing to save.'; return; }
 
@@ -429,7 +424,12 @@ async function saveSemester(semId, statusEl, btn) {
     showToast('Save failed: ' + error.message, true);
     return;
   }
-  dirtyBySem[semId] = new Set();
+  // only clear modules whose value hasn't changed again while this save was in flight
+  const dirty = dirtyBySem[semId] || new Set();
+  for (const [moduleId, grade] of savedValues) {
+    if ((gradesByModule[moduleId] || null) === grade) dirty.delete(moduleId);
+  }
+  dirtyBySem[semId] = dirty;
   statusEl.textContent = 'Saved just now.';
   showToast('Grades saved.');
 }
