@@ -11,7 +11,8 @@ no password to create or remember.
 |---|---|
 | `schema.sql.txt` | Run once in the Supabase SQL editor. Creates every table, RLS policy, trigger, and seeds Semester 1 & 2 modules + empty semester shells for 3–8. |
 | `supabase/curricula.sql` | Adds curricula (per-batch module lists and CGPA weights). Run once, after `rls.sql`. |
-| `supabase/seed_curriculum_2023.sql` | Seeds Curriculum 2023's common core + every department's core modules (Student Handbook 2024/2025). Run after `curricula.sql`; safe to re-run. |
+| `supabase/seed_curriculum_2023.sql` | Seeds Curriculum 2023's common core + every department's core modules (Student Handbook 2025/2026, 27th batch). Run after `curricula.sql`; safe to re-run. |
+| `supabase/update_curriculum_2023_sem3_8.sql` | Brings a database seeded from the older 2024/2025 list up to the 2025/2026 handbook's semester 3–8 modules, keeping students' grades. Safe to re-run. |
 | `supabase/rls.sql` | Row Level Security policies. Re-run any time to reset every policy to the expected set. |
 | `config.js` | Shared Supabase client + grade-point table. **Edit the two constants at the top before anything else will work.** |
 | `login.html` / `login.css` | Google sign-in screen. |
