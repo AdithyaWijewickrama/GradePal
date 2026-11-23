@@ -44,7 +44,8 @@ export const DEPARTMENTS = [
 export const BATCHES = ["27","26","25","24","23"];
 
 /**
- * Compute a weighted GPA over a list of {credits, grade} entries.
+ * Compute a weighted GPA over a list of {credits, grade, weight?} entries.
+ * weight defaults to 1 (plain credit-weighted average, i.e. SGPA).
  * Ignores modules with no grade, 0-credit modules, and non-GPA grades (MC/AC/WH).
  */
 export function calcGPA(entries) {
@@ -53,12 +54,23 @@ export function calcGPA(entries) {
     if (!e.grade || NON_GPA_GRADES.includes(e.grade)) continue;
     const gp = GRADE_POINTS[e.grade];
     if (gp === undefined) continue;
-    const c = Number(e.credits) || 0;
+    const c = (Number(e.credits) || 0) * (e.weight ?? 1);
     if (c <= 0) continue;
     creditSum += c;
     pointSum += c * gp;
   }
   return creditSum > 0 ? pointSum / creditSum : 0;
+}
+
+/**
+ * CGPA weight for a module in the given semester under a curriculum
+ * (handbook Eq. 12.2: e.g. 0.05 for semesters 1–2, 0.15 for 3–8).
+ * No curriculum, or an unknown semester, falls back to 1.
+ */
+export function gpaWeight(curriculum, semesterNumber) {
+  if (!curriculum || !semesterNumber) return 1;
+  const w = Number(semesterNumber) <= 2 ? curriculum.weight_common : curriculum.weight_specialisation;
+  return Number(w) || 1;
 }
 
 // Escape user-controlled text before interpolating it into innerHTML templates

@@ -34,6 +34,7 @@
     <div class="app-body">
       <nav class="tab-rail" aria-label="Admin sections">
         <button class="tab-btn active" data-tab="settings" type="button">Settings</button>
+        <button class="tab-btn" data-tab="curricula" type="button">Curricula</button>
         <button class="tab-btn" data-tab="semesters" type="button">Semesters</button>
         <button class="tab-btn" data-tab="modules" type="button">Modules</button>
         <button class="tab-btn" data-tab="students" type="button">Students &amp; Grades</button>
@@ -66,6 +67,76 @@
           </form>
           <p class="fine-print">Changing this transfers admin access to whichever Google account signs in with the new
             address. The current admin loses access immediately on next check.</p>
+        </section>
+
+        <!-- ===== CURRICULA ===== -->
+        <section class="semester-panel hidden" data-tabpanel="curricula">
+          <div class="panel-header">
+            <div>
+              <p class="panel-eyebrow">STRUCTURE</p>
+              <h2>Curricula</h2>
+            </div>
+          </div>
+
+          <form class="profile-form" id="curriculum-form">
+            <div class="field">
+              <label for="c-code">Code</label>
+              <input type="text" id="c-code" placeholder="e.g. 2023" required>
+            </div>
+            <div class="field">
+              <label for="c-name">Name</label>
+              <input type="text" id="c-name" placeholder="e.g. Curriculum 2023" required>
+            </div>
+            <div class="field">
+              <label for="c-w-common">CGPA weight, semesters 1–2</label>
+              <input type="number" id="c-w-common" min="0.01" step="0.01" value="0.05" required>
+            </div>
+            <div class="field">
+              <label for="c-w-spec">CGPA weight, semesters 3–8</label>
+              <input type="number" id="c-w-spec" min="0.01" step="0.01" value="0.15" required>
+            </div>
+            <div class="panel-footer" style="padding:0; grid-column: 1 / -1;">
+              <span class="save-status" id="curriculum-form-status"></span>
+              <button type="submit" class="btn btn-primary">Save curriculum</button>
+            </div>
+          </form>
+          <p class="fine-print">Saving an existing code updates its name and weights. Use 1 and 1 for a plain
+            credit-weighted CGPA. Handbook 2024/2025 (Eq. 12.2) uses 0.05 and 0.15.</p>
+
+          <form class="profile-form" id="batch-curriculum-form" style="margin-top:22px;">
+            <div class="field">
+              <label for="bc-batch">Batch</label>
+              <select id="bc-batch" required>
+                <option value="27">27 Batch</option>
+                <option value="26">26 Batch</option>
+                <option value="25">25 Batch</option>
+                <option value="24">24 Batch</option>
+                <option value="23">23 Batch</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="bc-curriculum">Follows curriculum</label>
+              <select id="bc-curriculum"></select>
+            </div>
+            <div class="panel-footer" style="padding:0; grid-column: 1 / -1;">
+              <span class="save-status" id="batch-curriculum-status"></span>
+              <button type="submit" class="btn btn-primary">Assign batch</button>
+            </div>
+          </form>
+
+          <div class="table-wrap" style="margin-top:22px;">
+            <table class="module-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Weights (1–2 / 3–8)</th>
+                  <th>Batches</th>
+                </tr>
+              </thead>
+              <tbody id="curricula-tbody"></tbody>
+            </table>
+          </div>
         </section>
 
         <!-- ===== SEMESTERS ===== -->
@@ -103,6 +174,10 @@
               </select>
             </div>
             <div class="field">
+              <label for="s-curriculum">Curriculum <span class="hint">(blank = all curricula)</span></label>
+              <select id="s-curriculum"></select>
+            </div>
+            <div class="field">
               <label for="s-batch">Batch label</label>
               <input type="text" id="s-batch" value="2024/2025" required>
             </div>
@@ -118,6 +193,7 @@
                 <tr>
                   <th>#</th>
                   <th>Department</th>
+                  <th>Curriculum</th>
                   <th>Batch label</th>
                   <th>Modules</th>
                 </tr>

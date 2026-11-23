@@ -1,10 +1,11 @@
-import { getClient, GRADE_POINTS, NON_GPA_GRADES, ALL_GRADES, calcGPA, fmtGPA } from './config.js';
+import { getClient, GRADE_POINTS, NON_GPA_GRADES, ALL_GRADES, calcGPA, gpaWeight, fmtGPA } from './config.js';
 
 const supabase = getClient();
 
 let session = null;
 let profile = null;
 let isAdmin = false;
+let curriculum = null;    // {code, name, weight_common, weight_specialisation} for the student's batch
 let semesters = [];      // [{id, semester_number, department, batch_label}]
 let modulesBySem = {};   // semesterId -> [module rows]
 let gradesByModule = {}; // moduleId -> grade string ('' if pending)
@@ -42,6 +43,7 @@ function showToast(msg, isError = false) {
 
   await loadProfile();
   await checkAdmin();
+  await loadCurriculum();
   await loadSemestersAndModules();
   await loadGrades();
 
@@ -97,15 +99,36 @@ async function checkAdmin() {
   adminLink.classList.toggle('hidden', !isAdmin);
 }
 
+async function loadCurriculum() {
+  curriculum = null;
+  if (!profile?.batch) return;
+  const { data, error } = await supabase.from('batch_curricula')
+    .select('curriculum_code, curricula(*)').eq('batch', profile.batch).maybeSingle();
+  // missing tables (curricula.sql not run yet) just means no curriculum-specific rules
+  if (error) { console.warn('Could not load curriculum', error); return; }
+  curriculum = data?.curricula || null;
+}
+
 async function loadSemestersAndModules() {
   const { data: semRows, error } = await supabase.from('semesters').select('*').order('semester_number');
   if (error) { console.error(error); showToast('Could not load semesters', true); return; }
 
-  // keep: both common semesters (1,2) + the ones matching the student's department
-  semesters = (semRows || []).filter(s => s.department === null || s.department === profile?.department);
-  semesters.sort((a, b) => a.semester_number - b.semester_number);
+  // keep: both common semesters (1,2) + the ones matching the student's department,
+  // limited to shared semesters (no curriculum) and the student's own curriculum
+  const visible = (semRows || []).filter(s =>
+    (s.department === null || s.department === profile?.department) &&
+    (s.curriculum_code == null || s.curriculum_code === curriculum?.code));
+
+  // one semester per number: the curriculum's own version wins over a shared one
+  const byNumber = new Map();
+  for (const s of visible) {
+    const existing = byNumber.get(s.semester_number);
+    if (!existing || (existing.curriculum_code == null && s.curriculum_code != null)) byNumber.set(s.semester_number, s);
+  }
+  semesters = [...byNumber.values()].sort((a, b) => a.semester_number - b.semester_number);
 
   const ids = semesters.map(s => s.id);
+  modulesBySem = {};
   if (ids.length === 0) return;
 
   const { data: modRows, error: modErr } = await supabase.from('modules').select('*').in('semester_id', ids).order('sort_order');
@@ -221,7 +244,8 @@ function renderSemesterPanel(sem, semNumber) {
   const panel = node.querySelector('[data-panel]');
   panel.id = 'panel-sem-' + semNumber;
 
-  node.querySelector('[data-eyebrow]').textContent = (sem.department || 'COMMON') + ' · ' + sem.batch_label;
+  node.querySelector('[data-eyebrow]').textContent = [sem.department || 'COMMON', curriculum?.name, sem.batch_label]
+    .filter(Boolean).join(' · ');
   node.querySelector('[data-title]').textContent = 'Semester ' + semNumber;
 
   if (isEmpty) {
@@ -259,6 +283,11 @@ function buildModuleRow(semId, mod) {
   const tdCode = document.createElement('td');
   tdCode.className = 'mod-code';
   tdCode.textContent = mod.code;
+  // shown under the code on narrow screens, where the name column is hidden
+  const nameSub = document.createElement('span');
+  nameSub.className = 'mod-name-sub';
+  nameSub.textContent = mod.name;
+  tdCode.appendChild(nameSub);
   tr.appendChild(tdCode);
 
   const tdName = document.createElement('td');
@@ -308,7 +337,16 @@ function buildModuleRow(semId, mod) {
     if (statusEl && btnEl) saveSemester(semId, statusEl, btnEl);
   });
 
-  tdGrade.appendChild(select);
+  const tick = document.createElement('span');
+  tick.className = 'save-tick';
+  tick.dataset.tickFor = mod.id;
+  tick.dataset.state = 'idle';
+  tick.setAttribute('aria-hidden', 'true');
+
+  const gradeCell = document.createElement('div');
+  gradeCell.className = 'grade-cell';
+  gradeCell.append(select, tick);
+  tdGrade.appendChild(gradeCell);
   tr.appendChild(tdGrade);
   return tr;
 }
@@ -337,7 +375,7 @@ function updateCgpa() {
   const all = [];
   for (const sem of semesters) {
     for (const m of (modulesBySem[sem.id] || [])) {
-      all.push({ credits: m.credits, grade: gradesByModule[m.id] });
+      all.push({ credits: m.credits, grade: gradesByModule[m.id], weight: gpaWeight(curriculum, sem.semester_number) });
     }
   }
   const graded = all.filter(e => e.grade);
@@ -410,6 +448,10 @@ async function saveSemester(semId, statusEl, btn) {
 
   if (rows.length === 0) { statusEl.textContent = 'Nothing to save.'; return; }
 
+  const panel = btn.closest('[data-panel]');
+  const ticks = rows.map(r => panel?.querySelector(`[data-tick-for="${r.module_id}"]`)).filter(Boolean);
+  setTicks(ticks, 'saving');
+
   btn.disabled = true;
   statusEl.textContent = 'Saving…';
   statusEl.classList.remove('error');
@@ -419,6 +461,7 @@ async function saveSemester(semId, statusEl, btn) {
   btn.disabled = false;
   if (error) {
     console.error(error);
+    setTicks(ticks, 'error');
     statusEl.textContent = 'Could not save — try again.';
     statusEl.classList.add('error');
     showToast('Save failed: ' + error.message, true);
@@ -430,8 +473,17 @@ async function saveSemester(semId, statusEl, btn) {
     if ((gradesByModule[moduleId] || null) === grade) dirty.delete(moduleId);
   }
   dirtyBySem[semId] = dirty;
+  // a newer save for the same module may already be in flight — leave its spinner alone
+  setTicks(ticks.filter(t => !dirty.has(Number(t.dataset.tickFor))), 'saved');
   statusEl.textContent = 'Saved just now.';
-  showToast('Grades saved.');
+}
+
+function setTicks(ticks, state) {
+  for (const t of ticks) {
+    t.dataset.state = state;
+    clearTimeout(t._fade);
+    if (state === 'saved') t._fade = setTimeout(() => { t.dataset.state = 'idle'; }, 2200);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -457,7 +509,8 @@ el('profile-form').addEventListener('submit', async (e) => {
     department: el('p-dept').value || null
   };
 
-  const deptChanged = update.department !== (profile?.department || null);
+  // department and batch both decide which semesters/curriculum apply
+  const structureChanged = update.department !== (profile?.department || null) || update.batch !== (profile?.batch || '');
 
   const { data, error } = await supabase.from('profiles').update(update).eq('id', session.user.id).select().single();
   if (error) {
@@ -471,9 +524,10 @@ el('profile-form').addEventListener('submit', async (e) => {
   statusEl.textContent = 'Saved.';
   showToast('Profile saved.');
 
-  if (deptChanged) {
-    // reload semesters/modules for the newly chosen department and re-render
+  if (structureChanged) {
+    // reload curriculum/semesters/modules for the new batch or department and re-render
     loadingState.classList.remove('hidden');
+    await loadCurriculum();
     await loadSemestersAndModules();
     await loadGrades();
     buildTabRail();

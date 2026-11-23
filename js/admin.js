@@ -1,4 +1,4 @@
-import { getClient, calcGPA, fmtGPA, escapeHtml } from './config.js';
+import { getClient, calcGPA, gpaWeight, fmtGPA, escapeHtml } from './config.js';
 
 const supabase = getClient();
 const el = (id) => document.getElementById(id);
@@ -15,6 +15,8 @@ function showToast(msg, isError = false) {
 let session = null;
 let semesters = [];
 let modules = [];
+let curricula = [];       // [{code, name, weight_common, weight_specialisation}]
+let batchCurricula = [];  // [{batch, curriculum_code}]
 
 // ---------------------------------------------------------------------------
 // BOOT + ADMIN GUARD
@@ -33,8 +35,11 @@ let modules = [];
   }
 
   await loadAdminEmail();
+  await loadCurricula();
   await loadSemesters();
   await loadModules();
+  populateCurriculumSelects();
+  renderCurriculaTable();
   populateModuleSemesterSelect();
   renderSemestersTable();
   renderModulesTable();
@@ -84,6 +89,106 @@ el('admin-email-form').addEventListener('submit', async (e) => {
 });
 
 // ---------------------------------------------------------------------------
+// CURRICULA
+// ---------------------------------------------------------------------------
+async function loadCurricula() {
+  const [{ data: cRows, error }, { data: bRows, error: bErr }] = await Promise.all([
+    supabase.from('curricula').select('*').order('code'),
+    supabase.from('batch_curricula').select('*')
+  ]);
+  // missing tables mean supabase/curricula.sql hasn't been run yet
+  if (error || bErr) { console.warn('Could not load curricula', error || bErr); return; }
+  curricula = cRows || [];
+  batchCurricula = bRows || [];
+}
+
+function curriculumName(code) {
+  return curricula.find(c => c.code === code)?.name || code;
+}
+
+function populateCurriculumSelects() {
+  const options = curricula.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.name)}</option>`).join('');
+  el('s-curriculum').innerHTML = `<option value="">— all curricula —</option>` + options;
+  el('bc-curriculum').innerHTML = `<option value="">— none (plain CGPA) —</option>` + options;
+  syncBatchCurriculumSelect();
+}
+
+function syncBatchCurriculumSelect() {
+  el('bc-curriculum').value = batchCurricula.find(b => b.batch === el('bc-batch').value)?.curriculum_code || '';
+}
+
+function renderCurriculaTable() {
+  const tbody = el('curricula-tbody');
+  if (curricula.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-faint); padding:24px;">No curricula yet — run supabase/curricula.sql or add one above.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = curricula.map(c => {
+    const batches = batchCurricula.filter(b => b.curriculum_code === c.code).map(b => b.batch).sort().reverse();
+    return `
+      <tr>
+        <td class="mod-code">${escapeHtml(c.code)}</td>
+        <td>${escapeHtml(c.name)}</td>
+        <td class="mod-credits">${escapeHtml(c.weight_common)} / ${escapeHtml(c.weight_specialisation)}</td>
+        <td class="mod-credits">${batches.length ? escapeHtml(batches.join(', ')) : '<span class="hint">none</span>'}</td>
+      </tr>`;
+  }).join('');
+}
+
+el('bc-batch').addEventListener('change', syncBatchCurriculumSelect);
+
+el('curriculum-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const statusEl = el('curriculum-form-status');
+  const row = {
+    code: el('c-code').value.trim(),
+    name: el('c-name').value.trim(),
+    weight_common: parseFloat(el('c-w-common').value),
+    weight_specialisation: parseFloat(el('c-w-spec').value)
+  };
+  statusEl.textContent = 'Saving…';
+  const { error } = await supabase.from('curricula').upsert(row, { onConflict: 'code' });
+  if (error) {
+    statusEl.textContent = 'Could not save curriculum.';
+    statusEl.classList.add('error');
+    showToast(error.message, true);
+    return;
+  }
+  statusEl.textContent = 'Saved.';
+  statusEl.classList.remove('error');
+  showToast('Curriculum saved.');
+  await loadCurricula();
+  populateCurriculumSelects();
+  renderCurriculaTable();
+  renderSemestersTable();
+  populateModuleSemesterSelect();
+  await loadStudents();
+});
+
+el('batch-curriculum-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const statusEl = el('batch-curriculum-status');
+  const batch = el('bc-batch').value;
+  const code = el('bc-curriculum').value;
+  statusEl.textContent = 'Saving…';
+  const { error } = code
+    ? await supabase.from('batch_curricula').upsert({ batch, curriculum_code: code }, { onConflict: 'batch' })
+    : await supabase.from('batch_curricula').delete().eq('batch', batch);
+  if (error) {
+    statusEl.textContent = 'Could not assign batch.';
+    statusEl.classList.add('error');
+    showToast(error.message, true);
+    return;
+  }
+  statusEl.textContent = 'Saved.';
+  statusEl.classList.remove('error');
+  showToast(code ? `Batch ${batch} now follows ${curriculumName(code)}.` : `Batch ${batch} unassigned.`);
+  await loadCurricula();
+  renderCurriculaTable();
+  await loadStudents();
+});
+
+// ---------------------------------------------------------------------------
 // SEMESTERS
 // ---------------------------------------------------------------------------
 async function loadSemesters() {
@@ -101,6 +206,7 @@ function renderSemestersTable() {
     tr.innerHTML = `
       <td class="mod-credits">${s.semester_number}</td>
       <td>${s.department ? escapeHtml(s.department) : '<span class="hint">common</span>'}</td>
+      <td>${s.curriculum_code ? escapeHtml(curriculumName(s.curriculum_code)) : '<span class="hint">all</span>'}</td>
       <td>${escapeHtml(s.batch_label)}</td>
       <td class="mod-credits">${count}</td>
     `;
@@ -114,6 +220,7 @@ el('semester-form').addEventListener('submit', async (e) => {
   const number = parseInt(el('s-number').value, 10);
   const dept = el('s-dept').value || null;
   const batch = el('s-batch').value.trim();
+  const curriculumCode = el('s-curriculum').value || null;
 
   if (number <= 2 && dept) {
     statusEl.textContent = 'Semesters 1 & 2 must have no department (common).';
@@ -127,9 +234,9 @@ el('semester-form').addEventListener('submit', async (e) => {
   }
 
   statusEl.textContent = 'Creating…';
-  const { error } = await supabase.from('semesters').insert({
-    semester_number: number, department: dept, batch_label: batch
-  });
+  const row = { semester_number: number, department: dept, batch_label: batch };
+  if (curriculumCode) row.curriculum_code = curriculumCode;
+  const { error } = await supabase.from('semesters').insert(row);
   if (error) {
     statusEl.textContent = 'Could not create (it may already exist).';
     statusEl.classList.add('error');
@@ -159,7 +266,8 @@ function populateModuleSemesterSelect() {
   for (const s of semesters) {
     const opt = document.createElement('option');
     opt.value = s.id;
-    opt.textContent = `Semester ${s.semester_number} — ${s.department || 'common'} (${s.batch_label})`;
+    const curr = s.curriculum_code ? ` · ${curriculumName(s.curriculum_code)}` : '';
+    opt.textContent = `Semester ${s.semester_number} — ${s.department || 'common'}${curr} (${s.batch_label})`;
     sel.appendChild(opt);
   }
 }
@@ -174,7 +282,7 @@ function renderModulesTable() {
       <td class="mod-code">${escapeHtml(m.code)}</td>
       <td>${escapeHtml(m.name)}</td>
       <td class="mod-credits">${escapeHtml(m.credits)}</td>
-      <td>${sem ? `Sem ${sem.semester_number} · ${escapeHtml(sem.department || 'common')}` : '—'}</td>
+      <td>${sem ? `Sem ${sem.semester_number} · ${escapeHtml(sem.department || 'common')}${sem.curriculum_code ? ' · ' + escapeHtml(curriculumName(sem.curriculum_code)) : ''}` : '—'}</td>
       <td><button class="mini-btn" data-del="${escapeHtml(m.id)}" type="button">Remove</button></td>
     `;
     tbody.appendChild(tr);
@@ -234,11 +342,16 @@ async function loadStudents() {
     (gradesByUser[g.user_id] ||= []).push(g);
   }
 
+  const moduleById = new Map(modules.map(m => [m.id, m]));
+  const semNumberById = new Map(semesters.map(s => [s.id, s.semester_number]));
+  const curriculumByBatch = new Map(batchCurricula.map(b => [b.batch, curricula.find(c => c.code === b.curriculum_code)]));
+
   studentsCache = (profiles || []).filter(p => !p.is_admin).map(p => {
     const userGrades = gradesByUser[p.id] || [];
+    const curriculum = curriculumByBatch.get(p.batch);
     const entries = userGrades.map(g => {
-      const mod = modules.find(m => m.id === g.module_id);
-      return { credits: mod?.credits || 0, grade: g.grade };
+      const mod = moduleById.get(g.module_id);
+      return { credits: mod?.credits || 0, grade: g.grade, weight: gpaWeight(curriculum, semNumberById.get(mod?.semester_id)) };
     });
     const gradedCount = userGrades.filter(g => g.grade).length;
     return { ...p, gradedCount, cgpa: calcGPA(entries) };

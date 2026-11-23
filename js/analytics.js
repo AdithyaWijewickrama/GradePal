@@ -1,4 +1,4 @@
-import { getClient, calcGPA, fmtGPA, escapeHtml, DEPARTMENTS, BATCHES } from './config.js';
+import { getClient, calcGPA, gpaWeight, fmtGPA, escapeHtml, DEPARTMENTS, BATCHES } from './config.js';
 
 const supabase = getClient();
 const el = (id) => document.getElementById(id);
@@ -24,22 +24,31 @@ el('signout-btn').addEventListener('click', async () => {
 });
 
 async function loadAndRender() {
-  const [{ data: profiles }, { data: grades }, { data: modules }, { data: semesters }] = await Promise.all([
+  const [{ data: profiles }, { data: grades }, { data: modules }, { data: semesters }, { data: curricula }, { data: batchCurricula }] = await Promise.all([
     supabase.from('profiles').select('*'),
     supabase.from('grades').select('user_id, module_id, grade'),
     supabase.from('modules').select('*'),
-    supabase.from('semesters').select('*')
+    supabase.from('semesters').select('*'),
+    supabase.from('curricula').select('*'),
+    supabase.from('batch_curricula').select('*')
   ]);
 
   const students = (profiles || []).filter(p => !p.is_admin);
   const moduleById = Object.fromEntries((modules || []).map(m => [m.id, m]));
+  const semNumberById = Object.fromEntries((semesters || []).map(s => [s.id, s.semester_number]));
+  const curriculumByBatch = Object.fromEntries((batchCurricula || []).map(b =>
+    [b.batch, (curricula || []).find(c => c.code === b.curriculum_code)]));
 
   const gradesByUser = {};
   for (const g of (grades || [])) (gradesByUser[g.user_id] ||= []).push(g);
 
   const studentStats = students.map(s => {
     const userGrades = gradesByUser[s.id] || [];
-    const entries = userGrades.map(g => ({ credits: moduleById[g.module_id]?.credits || 0, grade: g.grade }));
+    const curriculum = curriculumByBatch[s.batch];
+    const entries = userGrades.map(g => {
+      const mod = moduleById[g.module_id];
+      return { credits: mod?.credits || 0, grade: g.grade, weight: gpaWeight(curriculum, semNumberById[mod?.semester_id]) };
+    });
     const gradedCount = userGrades.filter(g => g.grade).length;
     return { ...s, gradedCount, cgpa: calcGPA(entries) };
   });

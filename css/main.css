@@ -178,6 +178,22 @@ button, input, select { font-family: inherit; }
 .module-table tbody tr:hover { background: var(--bg-row-alt); }
 .mod-code { font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 12.5px; }
 .mod-credits { font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+.mod-name-sub {
+  display: none; margin-top: 3px; font-family: 'Inter', sans-serif; font-size: 12.5px;
+  color: var(--text-primary); line-height: 1.35; white-space: normal;
+}
+
+.grade-cell { display: flex; align-items: center; gap: 8px; }
+.save-tick {
+  width: 18px; height: 18px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 1; transition: opacity 0.4s;
+}
+.save-tick[data-state="idle"] { opacity: 0; }
+.save-tick[data-state="saving"] { border: 2px solid var(--line-strong); border-top-color: var(--accent); animation: spin 0.8s linear infinite; }
+.save-tick[data-state="saved"] { background: var(--green-soft); color: var(--green); }
+.save-tick[data-state="saved"]::before { content: '✓'; }
+.save-tick[data-state="error"] { background: var(--red-soft); color: var(--red); }
+.save-tick[data-state="error"]::before { content: '!'; }
 
 .grade-select {
   background: var(--bg-row); border: 1px solid var(--line-strong); color: var(--text-primary);
@@ -261,6 +277,10 @@ button, input, select { font-family: inherit; }
   .topbar { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
   .topbar-cgpa { margin-left: 0; }
   .topbar-user { width: 100%; justify-content: space-between; }
+  /* name column folds under the code so the grade dropdown still fits */
   .module-table thead th:nth-child(2), .module-table td:nth-child(2) { display: none; }
+  .mod-name-sub { display: block; }
+  .module-table th, .module-table td { padding: 10px 10px; }
+  .grade-select { min-width: 76px; padding: 6px 6px; }
   .panel-header h2 { font-size: 20px; }
 }

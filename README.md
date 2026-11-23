@@ -10,6 +10,8 @@ no password to create or remember.
 | File | Purpose |
 |---|---|
 | `schema.sql.txt` | Run once in the Supabase SQL editor. Creates every table, RLS policy, trigger, and seeds Semester 1 & 2 modules + empty semester shells for 3–8. |
+| `supabase/curricula.sql` | Adds curricula (per-batch module lists and CGPA weights). Run once, after `rls.sql`. |
+| `supabase/seed_curriculum_2023.sql` | Seeds Curriculum 2023's common core + every department's core modules (Student Handbook 2024/2025). Run after `curricula.sql`; safe to re-run. |
 | `supabase/rls.sql` | Row Level Security policies. Re-run any time to reset every policy to the expected set. |
 | `config.js` | Shared Supabase client + grade-point table. **Edit the two constants at the top before anything else will work.** |
 | `login.html` / `login.css` | Google sign-in screen. |
@@ -77,7 +79,12 @@ files as-is and add that host's URL to Supabase's Redirect URLs list from step 2
   the Profile tab (`profiles.department`), which then filters `semesters` client-side.
 - **SGPA / CGPA math** (in `config.js`, reused everywhere):
   `SGPA = Σ(credits × grade_point) / Σ(credits)` over graded, GPA-counting modules in that semester;
-  `CGPA` is the same formula run across every module in every unlocked semester.
+  `CGPA` runs across every module in every unlocked semester, with each module's credits also weighted
+  by its curriculum (FoE Student Handbook 2024/2025, Eq. 12.2: 0.05 for semesters 1–2, 0.15 for 3–8).
+  A batch with no curriculum assigned gets a plain credit-weighted CGPA.
+- **Curricula**: Admin → Curricula sets each curriculum's CGPA weights and which batches follow it.
+  A semester can belong to one curriculum, or to none (shared by all). Students see their curriculum's
+  version of a semester when one exists, otherwise the shared one.
   Grade points: A+/A = 4.0, A- = 3.7, B+ = 3.3, B = 3.0, B- = 2.7, C+ = 2.3, C = 2.0, C- = 1.7, E = 0.0.
   `MC` / `AC` / `WH` are selectable but excluded from GPA math, matching the legend in the source sheet.
 - **Target-GPA planner**: shown only above Semester 1 & 2. Given a target, it solves
