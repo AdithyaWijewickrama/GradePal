@@ -33,6 +33,14 @@ create table if not exists public.batch_curricula (
 alter table public.semesters
   add column if not exists curriculum_code text references public.curricula(code) on update cascade;
 
+-- a curriculum can have its own copy of a semester beside the shared one, so
+-- a semester is unique per (number, department, curriculum), not per
+-- (number, department)
+alter table public.semesters drop constraint if exists semesters_semester_number_department_key;
+alter table public.semesters drop constraint if exists semesters_number_department_curriculum_key;
+alter table public.semesters add constraint semesters_number_department_curriculum_key
+  unique nulls not distinct (semester_number, department, curriculum_code);
+
 -- ---------------------------------------------------------------------------
 -- RLS — anyone signed in can read (students need their batch's curriculum
 -- and weights); only the admin can change anything.

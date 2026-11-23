@@ -1,4 +1,5 @@
 import { getClient, calcGPA, gpaWeight, fmtGPA, escapeHtml, DEPARTMENTS, BATCHES, GRADE_POINTS, NON_GPA_GRADES, CLASS_BANDS, classFor, GRADE_ORDER } from './config.js';
+import { setupViewTabs, setupBatchView } from './analytics-batch.js';
 
 const supabase = getClient();
 const el = (id) => document.getElementById(id);
@@ -65,7 +66,8 @@ async function loadAndRender() {
     }
     const gradedCount = userGrades.filter(g => g.grade).length;
     const gpaGradedCount = userGrades.filter(g => GRADE_POINTS[g.grade] !== undefined).length;
-    return { ...s, gradedCount, gpaGradedCount, rowCount: userGrades.length, semNumbers: new Set(Object.keys(bySem).map(Number)), sgpaBySem, cgpa: calcGPA(entries) };
+    const gpaCredits = userGrades.reduce((sum, g) => sum + (GRADE_POINTS[g.grade] !== undefined ? (Number(moduleById[g.module_id]?.credits) || 0) : 0), 0);
+    return { ...s, gradedCount, gpaGradedCount, gpaCredits, rowCount: userGrades.length, semNumbers: new Set(Object.keys(bySem).map(Number)), sgpaBySem, cgpa: calcGPA(entries) };
   });
 
   renderKpis(students, modules, semesters, studentGrades, studentStats);
@@ -79,7 +81,14 @@ async function loadAndRender() {
   renderDeptBatchGrid(studentStats);
   setupModuleTable(modules, semesters, studentGrades);
   renderLeaderboard(studentStats);
+
+  setupBatchView({ students, studentStats, studentGrades, modules: modules || [], semesters: semesters || [] }, {
+    ranked, median, barRow, renderClassBreakdown, renderCgpaHistogram, renderSemesterAverages,
+    renderGradeDistribution, setupModuleTable
+  });
 }
+
+setupViewTabs();
 
 const ranked = (studentStats) => studentStats.filter(s => s.gpaGradedCount > 0);
 
@@ -121,36 +130,38 @@ function renderKpis(students, modules, semesters, grades, studentStats) {
   el('kpi-note').textContent = 'Averages, classes and the leaderboard count only students with at least one GPA grade (MC/AC/WH and pending excluded).';
 }
 
-function renderClassBreakdown(studentStats) {
+function renderClassBreakdown(studentStats, target = 'class-chart') {
   const active = ranked(studentStats);
   const counts = CLASS_BANDS.map(b => ({ label: b.label, n: active.filter(s => classFor(s.cgpa).label === b.label).length }));
   const max = Math.max(1, ...counts.map(c => c.n));
-  el('class-chart').innerHTML = counts.map(c =>
+  el(target).innerHTML = counts.map(c =>
     barRow(c.label, c.n, max, `${c.n}${active.length ? ' · ' + Math.round(c.n / active.length * 100) + '%' : ''}`)).join('');
 }
 
-function renderCgpaHistogram(studentStats) {
+function renderCgpaHistogram(studentStats, target = 'cgpa-hist', step = 0.5) {
   const active = ranked(studentStats);
   const bins = [];
-  for (let lo = 0; lo < 4; lo += 0.5) bins.push({ lo, hi: lo + 0.5, n: 0 });
+  const nBins = Math.round(4 / step);
+  for (let i = 0; i < nBins; i++) bins.push({ lo: i * step, hi: (i + 1) * step, n: 0 });
   for (const s of active) {
-    const i = Math.min(bins.length - 1, Math.floor(s.cgpa / 0.5));
+    const i = Math.min(bins.length - 1, Math.floor(s.cgpa / step + 1e-9));
     bins[i].n++;
   }
   const shown = bins.filter(b => b.lo >= 1.5 || b.n > 0); // hide empty low bins
   const max = Math.max(1, ...shown.map(b => b.n));
-  el('cgpa-hist').innerHTML = shown.reverse().map(b =>
-    barRow(`${b.lo.toFixed(1)}–${b.hi === 4 ? '4.0' : (b.hi - 0.01).toFixed(2)}`, b.n, max)).join('');
+  const fmt = (v) => step < 0.5 ? v.toFixed(2) : v.toFixed(1);
+  el(target).innerHTML = shown.reverse().map(b =>
+    barRow(`${fmt(b.lo)}–${b.hi >= 4 ? (step < 0.5 ? '4.00' : '4.0') : (b.hi - 0.01).toFixed(2)}`, b.n, max)).join('');
 }
 
-function renderSemesterAverages(studentStats) {
+function renderSemesterAverages(studentStats, target = 'sem-chart') {
   const rows = [];
   for (let n = 1; n <= 8; n++) {
     const vals = studentStats.map(s => s.sgpaBySem[n]).filter(v => v !== undefined);
     const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
     rows.push(barRow(`Semester ${n}`, avg, 4, vals.length ? `${fmtGPA(avg)} · ${vals.length}` : 'n/a'));
   }
-  el('sem-chart').innerHTML = rows.join('') +
+  el(target).innerHTML = rows.join('') +
     '<p class="fine-print" style="margin-top:4px;">Value · number of students with grades in that semester.</p>';
 }
 
@@ -187,7 +198,7 @@ function renderDeptBatchGrid(studentStats) {
   el('dept-batch-grid').innerHTML = head + `<tbody>${body}${allRow}</tbody>`;
 }
 
-function setupModuleTable(modules, semesters, grades) {
+function setupModuleTable(modules, semesters, grades, filterId = 'module-sem-filter', tbodyId = 'module-tbody') {
   const semById = Object.fromEntries((semesters || []).map(s => [s.id, s]));
   const byModule = {};
   for (const g of grades) (byModule[g.module_id] ||= []).push(g.grade);
@@ -207,14 +218,14 @@ function setupModuleTable(modules, semesters, grades) {
   }).filter(s => s.graded > 0)
     .sort((a, b) => a.avg - b.avg || b.graded - a.graded);
 
-  const filter = el('module-sem-filter');
+  const filter = el(filterId);
   const nums = [...new Set(stats.map(s => s.semNumber).filter(Boolean))].sort((a, b) => a - b);
   filter.innerHTML = '<option value="">All semesters</option>' + nums.map(n => `<option value="${n}">Semester ${n}</option>`).join('');
 
   const render = () => {
     const want = filter.value ? Number(filter.value) : null;
     const rows = stats.filter(s => !want || s.semNumber === want);
-    const tbody = el('module-tbody');
+    const tbody = el(tbodyId);
     if (!rows.length) {
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-faint); padding:24px;">No graded modules yet.</td></tr>`;
       return;
@@ -236,14 +247,14 @@ function setupModuleTable(modules, semesters, grades) {
   render();
 }
 
-function renderGradeDistribution(grades) {
+function renderGradeDistribution(grades, target = 'grade-chart') {
   const order = GRADE_ORDER;
   const counts = Object.fromEntries(order.map(g => [g, 0]));
   for (const g of (grades || [])) {
     if (g.grade && counts[g.grade] !== undefined) counts[g.grade]++;
   }
   const max = Math.max(1, ...Object.values(counts));
-  const container = el('grade-chart');
+  const container = el(target);
   container.innerHTML = order.map(g => barRow(g, counts[g], max)).join('');
 }
 

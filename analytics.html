@@ -39,6 +39,12 @@
           <span>Your account is not the current admin. Redirecting…</span>
         </div>
 
+        <nav class="view-tabs" role="tablist" aria-label="Analytics views">
+          <button type="button" class="view-tab active" role="tab" id="tab-faculty" data-view="faculty" aria-selected="true">Faculty</button>
+          <button type="button" class="view-tab" role="tab" id="tab-batch" data-view="batch" aria-selected="false">Batch</button>
+        </nav>
+
+        <div id="view-faculty" role="tabpanel" aria-labelledby="tab-faculty">
         <section class="semester-panel">
           <div class="panel-header">
             <div>
@@ -195,6 +201,149 @@
             </table>
           </div>
         </section>
+
+        </div>
+
+        <div id="view-batch" class="hidden" role="tabpanel" aria-labelledby="tab-batch">
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">SINGLE BATCH</p>
+                <h2 id="batch-title">Batch</h2>
+              </div>
+              <div class="field" style="min-width:180px;">
+                <label for="batch-select">Batch</label>
+                <select id="batch-select"></select>
+              </div>
+            </div>
+            <div class="kpi-row" id="b-kpi-row"></div>
+            <p class="fine-print" id="b-kpi-note"></p>
+          </section>
+
+          <div class="two-col">
+            <section class="semester-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="panel-eyebrow">STANDING</p>
+                  <h2>Degree class</h2>
+                </div>
+              </div>
+              <div class="bar-chart wide-labels" id="b-class-chart"></div>
+            </section>
+            <section class="semester-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="panel-eyebrow">SPREAD</p>
+                  <h2>CGPA histogram</h2>
+                </div>
+              </div>
+              <div class="bar-chart wide-labels" id="b-cgpa-hist"></div>
+            </section>
+          </div>
+
+          <div class="two-col">
+            <section class="semester-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="panel-eyebrow">BY SEMESTER</p>
+                  <h2>Average SGPA</h2>
+                </div>
+              </div>
+              <div class="bar-chart wide-labels" id="b-sem-chart"></div>
+            </section>
+            <section class="semester-panel">
+              <div class="panel-header">
+                <div>
+                  <p class="panel-eyebrow">BY DEPARTMENT</p>
+                  <h2>Average CGPA</h2>
+                </div>
+              </div>
+              <div class="bar-chart wide-labels" id="b-dept-chart"></div>
+            </section>
+          </div>
+
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">DISTRIBUTION</p>
+                <h2>Grades awarded</h2>
+              </div>
+            </div>
+            <div class="bar-chart" id="b-grade-chart"></div>
+          </section>
+
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">MODULES</p>
+                <h2>Module difficulty</h2>
+              </div>
+              <div class="field" style="min-width:180px;">
+                <label for="b-module-sem-filter">Semester</label>
+                <select id="b-module-sem-filter">
+                  <option value="">All semesters</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap scroll-x">
+              <table class="module-table">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Module</th>
+                    <th>Sem</th>
+                    <th>Graded</th>
+                    <th>Avg GP</th>
+                    <th>E rate</th>
+                    <th>MC/AC/WH</th>
+                    <th>Pending</th>
+                  </tr>
+                </thead>
+                <tbody id="b-module-tbody"></tbody>
+              </table>
+            </div>
+            <p class="fine-print">This batch's grades only. Sorted hardest first (lowest average grade point).</p>
+          </section>
+
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">RANK LIST</p>
+                <h2>Ranked by CGPA</h2>
+              </div>
+              <div class="rank-controls">
+                <div class="field">
+                  <label for="rank-dept">Department</label>
+                  <select id="rank-dept"></select>
+                </div>
+                <div class="field">
+                  <label for="rank-search">Search</label>
+                  <input id="rank-search" type="search" placeholder="Name, email or index no.">
+                </div>
+                <button type="button" class="btn btn-ghost" id="rank-csv">Download CSV</button>
+              </div>
+            </div>
+            <div class="table-wrap scroll-x">
+              <table class="module-table rank-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Dept rank</th>
+                    <th>Student</th>
+                    <th>Index no.</th>
+                    <th>Dept</th>
+                    <th>Sems</th>
+                    <th>Graded</th>
+                    <th>CGPA</th>
+                    <th>Class</th>
+                  </tr>
+                </thead>
+                <tbody id="rank-tbody"></tbody>
+              </table>
+            </div>
+            <p class="fine-print" id="rank-note"></p>
+          </section>
+        </div>
 
       </main>
     </div>

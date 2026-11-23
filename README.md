@@ -18,7 +18,7 @@ no password to create or remember.
 | `login.html` / `login.css` | Google sign-in screen. |
 | `index.html` / `main.css` / `main.js` | Student dashboard: semester tabs, grade entry, target-GPA planner, profile tab. |
 | `admin.html` / `admin.css` / `admin.js` | Admin panel: change admin email, create semesters, add modules, browse students. |
-| `analytics.html` / `analytics.css` / `analytics.js` | Admin-only analytics: KPIs, grade distribution, per-department/batch average CGPA, leaderboard. |
+| `analytics.html` / `analytics.css` / `analytics.js` / `analytics-batch.js` | Admin-only analytics. **Faculty** tab: KPIs, grade distribution, per-department/batch average CGPA, leaderboard. **Batch** tab (`analytics.html#batch=27`): one batch's KPIs, degree classes, CGPA histogram, SGPA by semester, department comparison, grades awarded, module difficulty, and a CGPA rank list with department filter, search and CSV download. |
 
 ## 1. Create the Supabase project
 
