@@ -150,7 +150,9 @@ function renderCgpaHistogram(studentStats, target = 'cgpa-hist', step = 0.5) {
   const shown = bins.filter(b => b.lo >= 1.5 || b.n > 0); // hide empty low bins
   const max = Math.max(1, ...shown.map(b => b.n));
   const fmt = (v) => step < 0.5 ? v.toFixed(2) : v.toFixed(1);
-  el(target).innerHTML = shown.reverse().map(b =>
+  // Column charts read low → high left to right; row charts list the top band first.
+  if (!el(target).classList.contains('columns')) shown.reverse();
+  el(target).innerHTML = shown.map(b =>
     barRow(`${fmt(b.lo)}–${b.hi >= 4 ? (step < 0.5 ? '4.00' : '4.0') : (b.hi - 0.01).toFixed(2)}`, b.n, max)).join('');
 }
 
@@ -159,7 +161,7 @@ function renderSemesterAverages(studentStats, target = 'sem-chart') {
   for (let n = 1; n <= 8; n++) {
     const vals = studentStats.map(s => s.sgpaBySem[n]).filter(v => v !== undefined);
     const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
-    rows.push(barRow(`Semester ${n}`, avg, 4, vals.length ? `${fmtGPA(avg)} · ${vals.length}` : 'n/a'));
+    rows.push(barRow(`Sem ${n}`, avg, 4, vals.length ? `${fmtGPA(avg)} · ${vals.length}` : 'n/a'));
   }
   el(target).innerHTML = rows.join('') +
     '<p class="fine-print" style="margin-top:4px;">Value · number of students with grades in that semester.</p>';
@@ -274,7 +276,7 @@ function barRow(label, value, max, displayValue) {
   return `
     <div class="bar-row">
       <span class="bar-label">${label}</span>
-      <span class="bar-track"><span class="bar-fill" style="width:${pct}%"></span></span>
+      <span class="bar-track"><span class="bar-fill" style="--pct:${pct}%"></span></span>
       <span class="bar-value">${displayValue !== undefined ? displayValue : value}</span>
     </div>
   `;
