@@ -43,6 +43,23 @@ export const DEPARTMENTS = [
 
 export const BATCHES = ["27","26","25","24","23"];
 
+// Degree classes by CGPA, highest first (Student Handbook 2025/26, section 12.5:
+// First >= 3.70, Second Upper >= 3.30, Second Lower >= 3.00; a GPA of at least 2.00 is needed to graduate).
+export const CLASS_BANDS = [
+  { label: "First Class",  min: 3.70 },
+  { label: "Second Upper", min: 3.30 },
+  { label: "Second Lower", min: 3.00 },
+  { label: "Pass",         min: 2.00 },
+  { label: "Below pass",   min: 0 }
+];
+
+export function classFor(cgpa) {
+  return CLASS_BANDS.find(b => cgpa >= b.min) || CLASS_BANDS[CLASS_BANDS.length - 1];
+}
+
+// Grades in display order for distribution charts
+export const GRADE_ORDER = ["A+","A","A-","B+","B","B-","C+","C","C-","E","MC","AC","WH"];
+
 /**
  * Compute a weighted GPA over a list of {credits, grade, weight?} entries.
  * weight defaults to 1 (plain credit-weighted average, i.e. SGPA).

@@ -47,6 +47,98 @@
             </div>
           </div>
           <div class="kpi-row" id="kpi-row"></div>
+          <p class="fine-print" id="kpi-note"></p>
+        </section>
+
+        <div class="two-col">
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">STANDING</p>
+                <h2>Degree class</h2>
+              </div>
+            </div>
+            <div class="bar-chart wide-labels" id="class-chart"></div>
+          </section>
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">SPREAD</p>
+                <h2>CGPA histogram</h2>
+              </div>
+            </div>
+            <div class="bar-chart wide-labels" id="cgpa-hist"></div>
+          </section>
+        </div>
+
+        <div class="two-col">
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">BY SEMESTER</p>
+                <h2>Average SGPA</h2>
+              </div>
+            </div>
+            <div class="bar-chart wide-labels" id="sem-chart"></div>
+          </section>
+          <section class="semester-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-eyebrow">TEMPORARY · DATA CHECK</p>
+                <h2>Semester 1 &amp; 2 saved</h2>
+              </div>
+            </div>
+            <div class="bar-chart wide-labels" id="coverage-chart"></div>
+            <p class="fine-print">Students with at least one saved row in each semester. Use this to track the
+              Semester 1 &amp; 2 save that runs after a student's first grade change.</p>
+          </section>
+        </div>
+
+        <section class="semester-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-eyebrow">DEPARTMENT × BATCH</p>
+              <h2>Average CGPA grid</h2>
+            </div>
+          </div>
+          <div class="table-wrap scroll-x">
+            <table class="module-table grid-table" id="dept-batch-grid"></table>
+          </div>
+          <p class="fine-print">Each cell: average CGPA, with the number of students who have grades below it.</p>
+        </section>
+
+        <section class="semester-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-eyebrow">MODULES</p>
+              <h2>Module difficulty</h2>
+            </div>
+            <div class="field" style="min-width:180px;">
+              <label for="module-sem-filter">Semester</label>
+              <select id="module-sem-filter">
+                <option value="">All semesters</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap scroll-x">
+            <table class="module-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Module</th>
+                  <th>Sem</th>
+                  <th>Graded</th>
+                  <th>Avg GP</th>
+                  <th>E rate</th>
+                  <th>MC/AC/WH</th>
+                  <th>Pending</th>
+                </tr>
+              </thead>
+              <tbody id="module-tbody"></tbody>
+            </table>
+          </div>
+          <p class="fine-print">Sorted hardest first (lowest average grade point). Pending counts students who saved the
+            module without a grade.</p>
         </section>
 
         <section class="semester-panel">

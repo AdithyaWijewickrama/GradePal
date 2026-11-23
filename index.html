@@ -125,6 +125,63 @@
           </section>
         </template>
 
+        <!-- ===== OVERVIEW PANEL ===== -->
+        <section class="semester-panel hidden" id="panel-overview" data-panel>
+          <div class="panel-header">
+            <div>
+              <p class="panel-eyebrow" id="ov-eyebrow">YOUR PROGRESS</p>
+              <h2>Overview</h2>
+            </div>
+          </div>
+
+          <div id="ov-empty" class="empty-state hidden">Pick a grade for any module in a semester tab and your
+            analysis will show up here.</div>
+
+          <div id="ov-body">
+            <div class="ov-kpis" id="ov-kpis"></div>
+
+            <div class="ov-card" id="ov-class-card">
+              <p class="panel-eyebrow">DEGREE CLASS</p>
+              <div id="ov-class"></div>
+            </div>
+
+            <div class="ov-grid">
+              <div class="ov-card">
+                <p class="panel-eyebrow">SGPA BY SEMESTER</p>
+                <div class="ov-bars" id="ov-sgpa"></div>
+              </div>
+              <div class="ov-card">
+                <p class="panel-eyebrow">YOUR GRADES</p>
+                <div class="ov-bars" id="ov-dist"></div>
+              </div>
+            </div>
+
+            <div class="ov-grid">
+              <div class="ov-card">
+                <p class="panel-eyebrow">STRONGEST MODULES</p>
+                <ul class="ov-list" id="ov-best"></ul>
+              </div>
+              <div class="ov-card">
+                <p class="panel-eyebrow">WEAKEST MODULES</p>
+                <ul class="ov-list" id="ov-worst"></ul>
+              </div>
+            </div>
+
+            <div class="ov-card">
+              <p class="panel-eyebrow">SEMESTER BREAKDOWN</p>
+              <div class="table-wrap">
+                <table class="module-table ov-sem-table">
+                  <thead>
+                    <tr><th>Semester</th><th>Graded</th><th>Credits</th><th>SGPA</th><th>Status</th></tr>
+                  </thead>
+                  <tbody id="ov-sem-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+            <p class="fine-print" id="ov-note"></p>
+          </div>
+        </section>
+
         <!-- ===== PROFILE PANEL ===== -->
         <section class="semester-panel hidden" id="profile-panel" data-panel>
           <div class="panel-header">

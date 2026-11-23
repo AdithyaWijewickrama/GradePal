@@ -10,8 +10,21 @@
 .bar-row { display: grid; grid-template-columns: 64px 1fr 52px; align-items: center; gap: 10px; }
 .bar-row .bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); }
 .bar-track { height: 12px; background: var(--bg-row); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
-.bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 6px; }
+.bar-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 6px; }
 .bar-row .bar-value { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-primary); text-align: right; }
 
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+
+/* wider label column for longer labels (degree class, semesters, ranges) */
+.bar-chart.wide-labels .bar-row { grid-template-columns: 112px 1fr 72px; }
+.kpi-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.scroll-x { overflow-x: auto; }
+.grid-table td, .grid-table th { text-align: center; white-space: nowrap; }
+.grid-table td:first-child, .grid-table th:first-child { text-align: left; }
+.grid-cell-n { display: block; font-size: 11px; color: var(--text-faint); }
+.rate-bad { color: var(--red); }
+@media (max-width: 560px) {
+  .bar-chart.wide-labels .bar-row { grid-template-columns: 88px 1fr 60px; }
+}
+.content .semester-panel { margin-bottom: 30px; }

@@ -284,3 +284,43 @@ button, input, select { font-family: inherit; }
   .grade-select { min-width: 76px; padding: 6px 6px; }
   .panel-header h2 { font-size: 20px; }
 }
+
+/* ---------- STUDENT OVERVIEW ---------- */
+.ov-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.ov-kpi { background: var(--bg-panel-alt); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.ov-kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--gold); }
+.ov-kpi-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
+.ov-kpi-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.ov-card { background: var(--bg-panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; min-width: 0; }
+.ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ov-grid .ov-card { margin-bottom: 16px; }
+.ov-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.ov-bar { display: grid; grid-template-columns: 52px 1fr 58px; align-items: center; gap: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.ov-bar-label { color: var(--text-muted); }
+.ov-bar-value { text-align: right; color: var(--text-primary); }
+.ov-track { height: 10px; background: var(--bg-row); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.ov-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 6px; }
+.ov-fill.muted { background: var(--line-strong); }
+.ov-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ov-list li { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.ov-list .ov-mod { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-list .ov-mod code { font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 12px; margin-right: 6px; }
+.ov-list .ov-grade { font-family: 'IBM Plex Mono', monospace; color: var(--gold); flex-shrink: 0; }
+.ov-list .empty { color: var(--text-faint); }
+.ov-class-now { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; margin: 6px 0 4px; }
+.ov-class-text { font-size: 13.5px; line-height: 1.6; color: var(--text-muted); margin: 0; }
+.ov-class-text .hl { color: var(--gold); font-weight: 600; }
+.ov-ladder { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.ov-step { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--text-faint); }
+.ov-step.current { border-color: rgba(232,179,84,0.5); background: var(--gold-soft); color: var(--gold); }
+.ov-sem-table td, .ov-sem-table th { white-space: nowrap; }
+.ov-status-done { color: var(--green); }
+.ov-status-part { color: var(--gold); }
+.ov-status-none { color: var(--text-faint); }
+.fine-print { font-size: 12.5px; line-height: 1.6; color: var(--text-faint); margin: 4px 0 0; }
+@media (max-width: 760px) { .ov-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .ov-sem-table thead th:nth-child(2), .ov-sem-table td:nth-child(2) { display: table-cell; }
+}
+.ov-card .table-wrap { overflow-x: auto; }
+@media (max-width: 560px) { .ov-card { padding: 14px 12px; } }
