@@ -98,5 +98,5 @@ export function escapeHtml(value) {
 }
 
 export function fmtGPA(n) {
-  return (Math.round(n * 100) / 100).toFixed(2);
+  return (Math.round(n * 10000) / 10000).toFixed(4);
 }

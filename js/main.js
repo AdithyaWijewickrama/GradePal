@@ -449,7 +449,7 @@ function renderOverview() {
     { label: 'Credits passed', value: creditsPassed, sub: `${creditsGraded} graded · ${creditsPending} pending` },
     { label: 'Modules graded', value: `${all.filter(e => e.grade).length}/${all.length}`, sub: fails ? `${fails} E grade${fails > 1 ? 's' : ''}` : 'no E grades' },
     { label: 'Best SGPA', value: best ? fmtGPA(best.sgpa) : '—', sub: best ? `Semester ${best.n}` : '' },
-    { label: 'Latest trend', value: trend === null ? '—' : (trend >= 0 ? '+' : '') + trend.toFixed(2),
+    { label: 'Latest trend', value: trend === null ? '—' : (trend >= 0 ? '+' : '') + fmtGPA(trend),
       sub: trend === null ? 'needs 2 semesters' : `Sem ${prev.n} → Sem ${last.n}` }
   ];
   el('ov-kpis').innerHTML = kpis.map(k => `
@@ -517,7 +517,7 @@ function renderClassCard(cgpa, cls, gpaDone, pending) {
     if (next) {
       const r = need(next.min);
       if (r > 4) lines.push(`<span class="hl">${next.label}</span> (${next.min.toFixed(2)}) isn't reachable on the ${pendingCredits} pending credit(s) published so far. Even straight A's would end at <span class="hl">${fmtGPA((pts + wPending * 4) / (wGraded + wPending))}</span>.`);
-      else lines.push(`To reach <span class="hl">${next.label}</span> (${next.min.toFixed(2)}), you need an average of <span class="hl">${Math.max(r, 0).toFixed(2)}</span> (about <span class="hl">${nearestGradeLabel(Math.max(r, 0))}</span>) on your ${pendingCredits} pending credit(s).`);
+      else lines.push(`To reach <span class="hl">${next.label}</span> (${next.min.toFixed(2)}), you need an average of <span class="hl">${fmtGPA(Math.max(r, 0))}</span> (about <span class="hl">${nearestGradeLabel(Math.max(r, 0))}</span>) on your ${pendingCredits} pending credit(s).`);
     } else {
       lines.push('You\'re in the top class.');
     }
@@ -525,7 +525,7 @@ function renderClassCard(cgpa, cls, gpaDone, pending) {
       const keep = need(cls.min);
       lines.push(keep <= 0
         ? `You stay in <span class="hl">${cls.label}</span> whatever you get on the pending modules.`
-        : `To stay in <span class="hl">${cls.label}</span>, keep at least a <span class="hl">${keep.toFixed(2)}</span> average (about <span class="hl">${nearestGradeLabel(keep)}</span>) on them.`);
+        : `To stay in <span class="hl">${cls.label}</span>, keep at least a <span class="hl">${fmtGPA(keep)}</span> average (about <span class="hl">${nearestGradeLabel(keep)}</span>) on them.`);
     }
   }
 
@@ -583,7 +583,7 @@ function runTargetCalc(semId, mods, targetRaw, resultEl) {
   }
 
   const nearestGrade = nearestGradeLabel(requiredAvg);
-  resultEl.innerHTML = `On the remaining <span class="hl">${pendingCredits}</span> pending credit(s), you need an average grade point of <span class="hl">${requiredAvg.toFixed(2)}</span> — roughly a steady <span class="hl">${nearestGrade}</span> average — to land on ${target.toFixed(2)}.`;
+  resultEl.innerHTML = `On the remaining <span class="hl">${pendingCredits}</span> pending credit(s), you need an average grade point of <span class="hl">${fmtGPA(requiredAvg)}</span> — roughly a steady <span class="hl">${nearestGrade}</span> average — to land on ${fmtGPA(target)}.`;
 }
 
 function nearestGradeLabel(gp) {

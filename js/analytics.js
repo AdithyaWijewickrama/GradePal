@@ -238,7 +238,7 @@ function setupModuleTable(modules, semesters, grades, filterId = 'module-sem-fil
         <td>${escapeHtml(s.m.name)}</td>
         <td class="mod-credits">${s.semNumber ?? '—'}${s.sem?.department ? ' ' + escapeHtml(s.sem.department) : ''}</td>
         <td class="mod-credits">${s.graded}</td>
-        <td class="mod-credits" style="color:var(--gold); font-weight:600;">${s.avg.toFixed(2)}</td>
+        <td class="mod-credits" style="color:var(--gold); font-weight:600;">${fmtGPA(s.avg)}</td>
         <td class="mod-credits ${s.eRate >= 0.1 ? 'rate-bad' : ''}">${Math.round(s.eRate * 100)}%</td>
         <td class="mod-credits">${s.nonGpa}</td>
         <td class="mod-credits">${s.pending}</td>

@@ -105,7 +105,7 @@ function renderBatchKpis(inBatch, batchGrades, r) {
     { label: 'Department set', value: pct(withDept, inBatch.length), sub: `${withDept} of ${inBatch.length}` },
     { label: 'Avg. CGPA', value: dash(fmtGPA(avg)), sub: `median ${dash(fmtGPA(r.median(cgpas)))}` },
     { label: 'Highest CGPA', value: dash(fmtGPA(Math.max(...cgpas))), sub: `lowest ${dash(fmtGPA(Math.min(...cgpas)))}` },
-    { label: 'Std. deviation', value: n > 1 ? sd.toFixed(2) : '—', sub: 'of CGPA' },
+    { label: 'Std. deviation', value: n > 1 ? fmtGPA(sd) : '—', sub: 'of CGPA' },
     { label: CLASS_BANDS[0].label, value: first, sub: `${pct(first, n)} of graded` },
     { label: 'Below 2.00', value: belowPass, sub: `${pct(belowPass, n)} of graded` },
     { label: 'Grades recorded', value: recorded, sub: `${n ? (recorded / n).toFixed(1) : '0'} per graded student` }
