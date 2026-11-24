@@ -309,35 +309,34 @@
             <div class="panel-header">
               <div>
                 <p class="panel-eyebrow">RANK LIST</p>
-                <h2>Ranked by CGPA</h2>
+                <h2 id="rank-title">Ranked by CGPA</h2>
               </div>
               <div class="rank-controls">
+                <div class="field">
+                  <label for="rank-scope">Rank by</label>
+                  <select id="rank-scope"></select>
+                </div>
                 <div class="field">
                   <label for="rank-dept">Department</label>
                   <select id="rank-dept"></select>
                 </div>
                 <div class="field">
-                  <label for="rank-search">Search</label>
-                  <input id="rank-search" type="search" placeholder="Name, email or index no.">
+                  <label for="rank-search">Find a student</label>
+                  <input id="rank-search" type="search" placeholder="Reg. no., name or email">
                 </div>
-                <button type="button" class="btn btn-ghost" id="rank-csv">Download CSV</button>
               </div>
+            </div>
+            <div class="rank-summary" id="rank-summary"></div>
+            <div class="rank-actions">
+              <label class="rank-toggle"><input type="checkbox" id="rank-show-unranked" checked> List students with no GPA at the bottom</label>
+              <span class="rank-actions-btns">
+                <button type="button" class="btn btn-ghost" id="rank-print">Print / save as PDF</button>
+                <button type="button" class="btn btn-ghost" id="rank-csv">Download CSV</button>
+              </span>
             </div>
             <div class="table-wrap scroll-x">
               <table class="module-table rank-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Dept rank</th>
-                    <th>Student</th>
-                    <th>Index no.</th>
-                    <th>Dept</th>
-                    <th>Sems</th>
-                    <th>Graded</th>
-                    <th>CGPA</th>
-                    <th>Class</th>
-                  </tr>
-                </thead>
+                <thead id="rank-thead"></thead>
                 <tbody id="rank-tbody"></tbody>
               </table>
             </div>

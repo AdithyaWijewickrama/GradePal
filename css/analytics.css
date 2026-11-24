@@ -70,3 +70,21 @@
   .bar-chart.columns .bar-track { height: 130px; }
   .bar-chart.columns .bar-label, .bar-chart.columns .bar-value { font-size: 10px; }
 }
+
+/* Rank list summary (mirrors the official list's three boxes) */
+.rank-summary { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-panel-alt); margin-bottom: 14px; }
+.rank-stat { text-align: center; padding: 12px 10px; border-left: 1px solid var(--line); }
+.rank-stat:first-child { border-left: none; }
+.rank-stat-label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.rank-stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; color: var(--gold); margin: 4px 0 2px; }
+.rank-stat-sub { font-size: 11.5px; color: var(--text-faint); }
+.rank-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.rank-actions-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.rank-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
+.rank-table .rank-gpa { color: var(--gold); font-weight: 600; }
+.rank-table tr.rank-unranked td { opacity: 0.55; }
+@media (max-width: 560px) {
+  .rank-stat { padding: 10px 4px; }
+  .rank-stat-value { font-size: 20px; }
+  .rank-stat-label { font-size: 9.5px; }
+}
